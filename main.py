@@ -28,14 +28,10 @@ toBeNormalized = {"P/D":(100,10),
 #function for normalisation
 def normalize(value,param):
 	POP = toBeNormalized[param] 
-	print(POP,value)
 	if(value >= POP[0]):
-		print("min val hit")
 		return 1
 	if(value <= POP[1]):
-		print("max hit")
 		return 10
-	
 	return extrapolate(POP[0],POP[1],1,10,value)
 
 try:
@@ -54,6 +50,7 @@ headers = data.keys()
 
 weightsAndParams = dict()
 possibles = list()
+print("**************************************************")
 print("Enter choices for parameter and associated weight")
 for r,parameter in enumerate(headers):
 	if not data[parameter].isnull().values.any():
@@ -64,33 +61,34 @@ print("-1"," -- ","QUIT")
 entered = -2
 while(entered != -1):
 	print()
-	entered = int(input("Enter choice: "))
+	try:
+		entered = int(input(">> Enter choice: "))
+	except ValueError:
+		break
 	if(entered >= 0 and (entered in possibles)):
-		weight = float(input("Enter weight for " + headers[entered] + " :  "))
+		weight = float(input(">> Enter weight for " + headers[entered] + " :  "))
 		weightsAndParams[str(headers[entered])] = weight
 	if(entered not in possibles and entered != -1):
 		print("[WARNING]: Entered value not in list.")
-	
+
+print("**************************************************")
+print()
 noOfStocks = data.shape[0]
+print("Analysing " + str(noOfStocks) + " stocks from " + oldFileName)
+
 for i in range(noOfStocks):
 	score = 0
 	for key,val in weightsAndParams.items():
 		if(key in toBeNormalized.keys()):
 			normalizedValue = normalize(data[key][i],key)
 			data[str(key) + ".1"][i] = normalizedValue
-			score+= normalizedValue * val
+			score += normalizedValue * val
 		else:
 			score += data[key][i] * val
 	data["Score"][i] = score
-	print("stock: " + str(i),score)
 		
-print(data)
+print("[INFO]: Analysis complete!")
+
+data.sort_values(by=["Score"],inplace=True,ascending=False)
 data.to_excel(newFileName)
-	
-	
-#for each key in dictionary:
-	#go through each coloumn in the dictionary and multiply the value by the weightage. For certain coloumns, multiply bu weightage after applying their respective normalisation functions
-	#enter the final value as score
-	
-#sort the entire array on the basis of score while maintaining associativity
-#let's make money
+print("[INFO]: Analysis written to " + newFileName)
